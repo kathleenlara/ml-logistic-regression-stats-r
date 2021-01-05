@@ -1,0 +1,262 @@
+---
+title: "Facebook Campaigns"
+authors: Kathleen Lara
+subtitle: R for Data Science @ Hult University
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    number_sections: yes
+    theme: readable
+    highlight: pygments
+    toc: yes
+    toc_float:
+      collapsed: yes
+---
+
+# Abstract
+For this project, I would like to analyze the Facebook Metric dataset which is publicly available for research. It is a renowned cosmetic brand that was not disclosed but for this project we will call the brand LOLreal. The data set is found in this [link](https://archive.ics.uci.edu/ml/datasets/Facebook+metrics). 
+
+
+# Framing the Problem
+
+### Business Problem
+The management would like to get an idea of how the facebook posts performance overall looks like. Additionally, they would like to know what efforts has been done and what factors affect the overall interactions of every post.
+
+Some questions they might have to the marketing team are, how often do they post every week, what months do they usually post? what time of the day do they usually post? 
+
+Overall they just want to know what variables affect the interactions more. 
+
+
+### Hypothesis Test
+The marketing team has been preparing for their presentation to the management.Their goal is to request an additional marketing budget for their marketing campaigns. They are pitching that paid posts gets more interactions.
+
+Ho: Paid posts means higher interactions
+
+Ha: Paid posts does not mean having higher interactions
+
+Let's now explore the data and see what would be useful for us in our hypothesis testing.
+
+# Introduction to the dataset
+
+The Facebook metrics is a real data set with 19 columns and 499 observations.  It is entirely quantitative with only a few columns being ordinal. 
+
+```{r load tidyverse, message=FALSE, warning=FALSE}
+# loading the libaries needed
+library(tidyverse)
+library(ggplot2)
+```
+
+
+```{r load facebook, message=FALSE}
+#loading the facebook csv data hosted at data world
+facebook = read_csv("https://query.data.world/s/3vb7yr2iodbwybrckhyv5rbwfh2tct")
+```
+
+After loading the dataset, we want to look at the variables and check its data types to see if we need to do any transformations, we also want to get an idea of what the values are and make sure we can work with them and we don't not need to convert them.
+
+```{r message=FALSE, warning=FALSE}
+# Checking Data Types
+sapply(facebook, typeof)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Looking at the first 5 rows to get an idea of what the data looks like
+library(dplyr)
+facebook %>% slice_head(n = 5)
+```
+
+Looking at the sample data, it seems like we need to change some columns into factors (categorial) so we won't treat them as an integer in the future. We will do some transformations later if we need to change other variables.
+
+```{r message=FALSE, warning=FALSE}
+facebook$Paid <- as.factor(facebook$Paid)
+facebook$Category <- as.factor(facebook$Category)
+```
+
+# Solving the Problem
+
+### Exploratory Analysis
+
+After looking at the columns and sample values, we want to start off by getting an idea of what are current situation is by visualizing what type of posts are mostly created by the marketing team. Looking at the graph below, we can see that the marketing team has been uploading more photo compared to the other type of posts.
+
+```{r message=FALSE, warning=FALSE}
+#Looking at the variable type
+ggplot(facebook) + 
+   xlab("Type of Post") +
+  ylab("Number of posts") +
+  geom_bar(aes(x = Type))
+
+```
+
+Seeing that there are different post types, it would be nice to see how many of each type are paid or not.So we will group them based on their type and then group the paid and not below.(1 being paid, 0 being not paid).
+
+```{r message=FALSE, warning=FALSE}
+#Looking at the variable type and if it's paid or not
+ggplot(data = facebook, aes(x = Type)) +
+   xlab("Not Paid (0) / Paid (1)") +
+  ylab("Number of posts") +
+  geom_bar() + 
+  facet_wrap(~Paid)
+```
+Now that we have an idea of the type of posts and how the paid and not paid are distributed, we'd like to pull out how the posts are scheduled within the week.
+ 
+```{r message=FALSE, warning=FALSE}
+#Looking at posts per day (1 - 7 days of the week, Monday being the first day), 
+ggplot(data = facebook, aes(x = Post_Weekday, fill = Paid)) + 
+  xlab("Days of the Week from Monday to Sunday") +
+  ylab("Number of posts") +
+  geom_histogram()
+```
+Looking at the schedule it seems like we post more during the weekends but most of the paid posts are distributed within the weekdays. We now want to see what hours do we normally post within the day and what type of post do we usually do.
+
+```{r}
+#Looking at the variable type and if it's paid or not
+ggplot(data = facebook, aes(x = Post_Hour, fill = Paid )) +
+   xlab("Hours of the Day") +
+  ylab("Count of Posts") +
+  geom_bar() + 
+  facet_wrap(~Type)
+```
+
+It seems like we have posted several photos and most of the paid posts are also photo posts.
+Now that we have a basic understanding of what the facebook posts look like, when in the day and week they are normaly posted and visualized if they are paid or not, we now look at a quick view of the Facebook performance via the total interactions and some other variables we can look at.
+
+
+### Correlations
+
+Does having more likes mean having more interactions?
+
+```{r message=FALSE, warning=FALSE}
+#Checking for comment and interactions correlation
+ggplot(data = facebook, aes(x = like, y = interactions)) + 
+  geom_point()
+```
+
+
+### Dealing with Outliers
+
+We noticed that there's an outlier and we'd rather drop that in order to not skew our results. We will look at the variable and its IQR. Before we do any data analysis, we want to remove the outleiers first.
+
+```{r message=FALSE, warning=FALSE}
+#boxplot to check for outliers
+boxplot(facebook$interactions)
+```
+After looking at the boxplot, we want to look at the exact quantile range
+
+```{r message=FALSE, warning=FALSE}
+quantile(facebook$interactions)
+```
+
+We see that our outlier is above the 7% IQR and our solution is to remove the outliers that is more than the 75% IQR. 
+
+```{r message=FALSE, warning=FALSE}
+facebook1 <- subset(facebook,facebook$interactions<229)
+dim(facebook1)
+```
+
+Now that we have removed the outliers, let's double check our data again using our new dataframe and see if we have successufully removed the outliers.
+
+```{r message=FALSE, warning=FALSE}
+boxplot(facebook1$interactions)
+```
+Looking at the boxplot, it seems that we have solved the outlier issue. We can do more analysis on the data that we have now and look at some correlations that are good to know.
+
+Our first question is, what does the correlation look like between interaction and the 3 variables (like, comment, share) We also want to look at this by Paid or not.
+
+```{r message=FALSE, warning=FALSE}
+#Checking for interactions and likes correlation
+ggplot(data = facebook1, aes(x = like, y = interactions, color=Paid)) + 
+  geom_point()
+```
+
+
+We can clearly see that there is a positive correlation between likes and interactions. Now let's see what the correlation looks like between share and interactions.
+
+
+```{r message=FALSE, warning=FALSE}
+ggplot(data = facebook1, aes(x = share, y = interactions, color=Paid)) + 
+  geom_point()
+```
+
+
+We're also seeing a positive correlation between share and interactions. We will now check comments and interactions.
+
+
+```{r message=FALSE, warning=FALSE}
+ggplot(data = facebook1, aes(x = comment, y = interactions,color=Paid)) + 
+  geom_point()
+```
+
+
+The scatterplot does not seem to have a pattern on the correlation. It seems like we don't have enough comments which is why it doesn't really add that much in terms of interactions.
+
+
+# Modelling and Communication
+
+### Testing the Hypothesis
+
+Now that we have some insights of our data, the next step for us is to perform a hypothesis testing. Going back to our business problem, we want to know which variables affects the interactions more, especially the Paid variable.
+
+Ho: Paid posts means higher interactions
+
+Ha: Paid posts does not mean having higher interactions
+
+We would be looking at p-values, correlations and looking at its descriptive statistics in order for us to know if we reject or accept the Null Hypothesis. The variables below are what we want to look at.
+
+$$
+\begin{aligned}
+\text{inteactions} &= f(\text{Paid, Post Month, Post Weekday, }) + \epsilon \\
+                     &= \beta_0 + \beta_1(\text{Paid}) + \beta_2(\text{Post_Month}) + \beta_3(\text{Post_Weekday}) + \epsilon
+\end{aligned}
+$$
+
+### Linear Regression
+
+Before we do the linear regression, we will turn the variables into factors just to make sure that they are stored as categorial variables.
+
+```{r}
+facebook1 %>% 
+  lm(formula = interactions ~ factor(Type) + factor(Paid) + factor(Post_Month) + factor(Post_Weekday), data = .) %>% 
+  summary()
+```
+
+### Goodness of Fit
+The first thing that we want to do before looking at the individual p-values is looking at the overall quality of our linear model. F-statistic gives the overall significance of the model. We got less than 5% which is good. Another is RSE which is the average difference between the observed outcome values and the predicted values, we got 56.18%.  We also looked at the Adjusted R2 because it's a reliable statistics more than the R Sq because it takes the sample size into account. Note that we get penalized for including more variables which might be unnecessary which explains the results. 
+
+These numbers are just general view of the model. What we want to do is to look at the individual p-values and co-efficients and draw insights  from there.
+
+### Looking at the p-values
+We will find variables with p-values less than 5%. If the p-value is greater than 5% it does not influence our response variable (interactions). The asterisks have guided us in pointing these variables. 
+
+We see that Type of Posts (Photo & Status), and the month of March and October are significant to highly significant with the total interactions. It means they have a strong influence on the interactions.
+
+### Looking at the co-efficients
+
+Since the variables are categorial, we can say that if everything else **held constant**, what number will it be higher? 
+
+Let's pick the variables that we want to look at:
+
+**Paid:**
+When everything else is held constant, we get 8.80700 more interactions than when it's not paid
+
+**Photo:**
+When everything else is held constant, we get an ave of 29.08355 more interactions than it was other type of posts.
+
+**October:**
+When everything else is held constant, we get **less** 39.88940 posts. Now this is highly significant and had influenced the interactions negatively.
+
+
+### Conclusion
+
+Going back to our hypothesis, which is:
+
+Ho: Paid posts means higher interactions
+Ha: Paid posts does not mean having higher interactions
+
+We see from both the p-values and co-efficient that paid posts indeed means higher interactions, so we don't reject the null hypothesis.
+
+# Future Research
+
+There are other variables that we can add into the model. It would have been better if we included more variables and did some elimination process and iterate until we get a better fit model. It would also be nice to learn more about how we can integrate data from a datawarehouse onto R so in the future, if the data updates we can just rerun the chunks,
