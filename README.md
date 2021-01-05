@@ -1,4 +1,4 @@
-# facebook-campaigns
+# analyzing-facebook-campaigns-using-R
 
 For this project, you will see how a Facebook Metric dataset which is publicly available for research was analyzed. The outline of the project is as follows:
 
