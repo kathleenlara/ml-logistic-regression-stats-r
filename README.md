@@ -30,3 +30,7 @@ Ha: Paid posts does not mean having higher interactions
   5.0.5 Looking at the co-efficients <br> 
   5.0.6 Conclusion <br> 
 - Future Research
+
+
+# Author
+https://www.kathleenlara.com/
