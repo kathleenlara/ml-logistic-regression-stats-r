@@ -13,20 +13,20 @@ Ha: Paid posts does not mean having higher interactions
 
 ## Overview of this project
 
-- Abstract
-- Framing the Problem
-  2.0.1 Business Problem
+- Abstract <br> 
+- Framing the Problem <br> 
+  2.0.1 Business Problem <br> 
   2.0.2 Hypothesis Test
-- Introduction to the dataset
-- Solving the Problem
-  4.0.1 Exploratory Analysis
-  4.0.2 Correlations
+- Introduction to the dataset <br> 
+- Solving the Problem <br> 
+  4.0.1 Exploratory Analysis <br> 
+  4.0.2 Correlations <br> 
   4.0.3 Dealing with Outliers
-- Modelling and Communication
-  5.0.1 Testing the Hypothesis
-  5.0.2 Linear Regression
-  5.0.3 Goodness of Fit
-  5.0.4 Looking at the p-values
-  5.0.5 Looking at the co-efficients
-  5.0.6 Conclusion
+- Modelling and Communication <br> 
+  5.0.1 Testing the Hypothesis <br> 
+  5.0.2 Linear Regression <br> 
+  5.0.3 Goodness of Fit <br> 
+  5.0.4 Looking at the p-values <br> 
+  5.0.5 Looking at the co-efficients <br> 
+  5.0.6 Conclusion <br> 
 - Future Research
